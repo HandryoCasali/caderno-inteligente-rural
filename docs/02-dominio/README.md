@@ -1,12 +1,32 @@
 # Domínio
 
-Esta pasta contém toda a documentação relacionada ao domínio do sistema.
+## Objetivo
+
+Esta pasta concentra toda a documentação relacionada às regras de negócio do sistema.
+
+Os documentos aqui presentes representam a principal fonte de verdade sobre o comportamento do domínio e devem permanecer independentes de qualquer tecnologia.
+
+## Conteúdo
+
+* Linguagem Ubíqua
+* Modelo de Domínio
+* Regras de Negócio
+* Estados e Transições
+
+## Público
+
+* Desenvolvedores
+* Arquitetos
+* Product Manager
 
 ## Ordem de leitura
 
-1. linguagem-ubiqua.md
-2. modelo-dominio.md
-3. regras-negocio.md
-4. estados-transicoes.md (futuro)
+1. Linguagem Ubíqua
+2. Modelo de Domínio
+3. Regras de Negócio
+4. Estados e Transições
 
-Os documentos desta pasta são a principal fonte de verdade sobre o comportamento do sistema.
+## Evoluções futuras
+
+* Glossário do Domínio
+* Eventos do Domínio
