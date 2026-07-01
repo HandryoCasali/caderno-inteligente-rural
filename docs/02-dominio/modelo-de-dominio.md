@@ -2,9 +2,9 @@
 
 **Código:** DOC-004
 **Categoria:** Domínio
-**Versão:** 1.0
+**Versão:** 1.1
 **Status:** Aprovado
-**Última atualização:** 28/06/2026
+**Última atualização:** 01/07/2026
 **Responsável:** Handryo Casali
 
 ---
@@ -21,13 +21,11 @@ Este documento representa o domínio do negócio, e não um modelo de banco de d
 
 # Visão Geral
 
-No MVP, o sistema possui um único **Bounded Context**:
+O domínio do **Caderno Inteligente Rural** é centrado na gestão do rebanho.
 
-## Gestão do Rebanho
+Todas as funcionalidades do MVP derivam do gerenciamento dos animais pertencentes à propriedade e do histórico de acontecimentos relacionados a eles.
 
-Esse contexto é responsável pelo gerenciamento dos animais da propriedade, seus eventos, seu estado atual e, para o gado leiteiro, pelo acompanhamento do ciclo reprodutivo e da produção diária de leite.
-
-Todo o restante do sistema deriva desse contexto.
+O **Animal** é o principal agregado do domínio, sendo responsável por manter sua consistência, seu estado atual e seu histórico de vida.
 
 ---
 
@@ -40,9 +38,9 @@ Representa a fazenda administrada pelo produtor.
 ### Responsabilidades
 
 * Identificar a propriedade.
-* Agrupar o rebanho.
+* Agrupar logicamente o rebanho.
 * Armazenar a produção diária de leite.
-* Servir como limite organizacional do domínio.
+* Servir como limite organizacional da aplicação.
 
 ### Observações
 
@@ -54,65 +52,58 @@ No MVP cada usuário possui apenas uma propriedade.
 
 Representa um animal pertencente ao rebanho.
 
-É a entidade mais importante do domínio.
+É a entidade mais importante do domínio e o principal Aggregate Root do sistema.
 
 ### Responsabilidades
 
 * Manter suas informações cadastrais.
-* Representar o estado atual do animal.
+* Representar a projeção atual do histórico do animal.
 * Possuir histórico completo de eventos.
-* Possuir histórico reprodutivo.
-* Garantir suas regras de negócio.
+* Garantir todas as regras de negócio relacionadas ao animal.
+* Garantir a consistência entre seu estado atual e seu histórico.
 
 ---
 
 ## Evento
 
-Representa um acontecimento ocorrido durante a vida de um animal.
+Representa um fato ocorrido durante a vida de um animal.
+
+Eventos são registros permanentes e imutáveis do domínio.
+
+Depois de registrados, representam fatos históricos e não o estado atual do animal.
+
+O estado atual é obtido pela interpretação do histórico de eventos em conjunto com as regras de negócio.
 
 Todo evento possui características comuns:
 
-* Data
+* Data da ocorrência
 * Tipo
 * Observação
 * Fotos (opcional)
 * Responsável pelo registro
 * Data de criação
 
-No domínio existem atualmente duas especializações desse conceito.
-
 ### EventoAnimal
 
-Eventos relacionados ao ciclo de vida do animal.
+Representa acontecimentos relacionados ao ciclo de vida do animal.
 
-Tipos:
+Exemplos:
 
 * Entrada
 * Venda
 * Morte
 
-Responsabilidades:
-
-* Registrar histórico permanente.
-* Atualizar o Status do Animal quando necessário.
-
 ### EventoReprodutivo
 
-Eventos relacionados à reprodução.
+Representa acontecimentos relacionados ao ciclo reprodutivo.
 
-Tipos:
+Exemplos:
 
 * Cio
 * Prenhez
 * Parto
 
-Responsabilidades:
-
-* Registrar histórico permanente.
-* Atualizar o Estado Reprodutivo.
-* Permitir validações específicas do domínio.
-
-> **Observação:** No MVP, `EventoAnimal` e `EventoReprodutivo` serão implementados como entidades distintas. Conceitualmente, ambos representam especializações do conceito de **Evento**, o que poderá orientar futuras evoluções do domínio.
+> **Observação:** Conceitualmente, o domínio diferencia Eventos do Animal e Eventos Reprodutivos por questões de negócio e linguagem ubíqua. Entretanto, a implementação poderá utilizar uma única entidade de persistência (`Evento`) com um campo identificando seu tipo, desde que essa decisão não comprometa a clareza do domínio.
 
 ---
 
@@ -137,7 +128,7 @@ Representa o peso do animal.
 Características:
 
 * Unidade oficial: quilogramas (kg).
-* Arrobas são uma representação derivada para exibição.
+* Arrobas são apenas uma representação derivada para exibição.
 
 ---
 
@@ -145,7 +136,7 @@ Características:
 
 Representa valores monetários utilizados pelo domínio.
 
-Evita o uso direto de tipos primitivos e centraliza futuras regras de arredondamento e formatação.
+Evita o uso direto de tipos primitivos e centraliza futuras regras de arredondamento, comparação e formatação.
 
 ---
 
@@ -159,16 +150,22 @@ Animal
 
 ### Objetos pertencentes ao agregado
 
-* EventoAnimal
-* EventoReprodutivo
+* Eventos
+* Informações reprodutivas
+* Estado atual
 
 ### Responsabilidades
 
-O Animal é responsável por garantir todas as invariantes relacionadas aos seus eventos.
+O Animal é responsável por:
+
+* Garantir todas as invariantes relacionadas ao seu ciclo de vida.
+* Garantir a consistência entre seu estado atual e o histórico registrado.
+* Impedir estados inválidos.
+* Ser o único ponto de acesso para alterações relacionadas ao seu domínio.
 
 Nenhum evento poderá existir sem um Animal.
 
-Todo acesso aos eventos deverá ocorrer através do Animal.
+Todo acesso ao histórico deverá ocorrer através do Animal.
 
 ---
 
@@ -180,22 +177,22 @@ Propriedade
 
 ### Objetos pertencentes ao agregado
 
-* Animal
 * ProduçãoDiáriaLeite
 
-A Propriedade representa o limite organizacional do rebanho.
+### Responsabilidades
+
+A Propriedade representa o limite organizacional da fazenda.
+
+Os Animais pertencem a uma Propriedade, porém constituem um agregado independente.
 
 ---
 
 # Relacionamentos
 
-Uma Propriedade possui vários Animais.
-
-Um Animal possui vários Eventos do Animal.
-
-Um Animal possui vários Eventos Reprodutivos.
-
-Uma Propriedade possui vários registros de Produção Diária de Leite.
+* Uma Propriedade possui vários Animais.
+* Um Animal pertence a exatamente uma Propriedade.
+* Um Animal possui vários Eventos.
+* Uma Propriedade possui vários registros de Produção Diária de Leite.
 
 ---
 
@@ -203,11 +200,11 @@ Uma Propriedade possui vários registros de Produção Diária de Leite.
 
 Cada agregado será responsável por manter suas próprias regras de negócio e consistência.
 
-Da mesma forma, cada agregado possuirá seus próprios Casos de Uso.
-
-Exemplos:
+Cada agregado expõe sua própria camada de aplicação, responsável por coordenar seus casos de uso.
 
 ### Agregado Animal
+
+Casos de uso típicos:
 
 * Cadastrar Animal
 * Atualizar Animal
@@ -220,10 +217,12 @@ Exemplos:
 
 ### Agregado Propriedade
 
-* Consultar Dashboard
-* Registrar Produção Diária de Leite
+Casos de uso típicos:
 
-Essa organização mantém o domínio desacoplado e alinhado à arquitetura definida para o projeto.
+* Registrar Produção Diária de Leite
+* Consultar Dashboard
+
+Essa organização mantém o domínio desacoplado e alinhado à arquitetura do projeto.
 
 ---
 
@@ -252,12 +251,14 @@ Toda nova entidade ou conceito deverá:
 * Respeitar o Manifesto.
 * Utilizar a Linguagem Ubíqua.
 * Integrar-se ao Modelo de Domínio.
+* Preservar os princípios arquiteturais do projeto.
 * Ser validado antes da implementação.
 
 ---
 
 # Histórico de Alterações
 
-| Versão | Data       | Alteração                                                      |
-| ------ | ---------- | -------------------------------------------------------------- |
-| 1.0    | 28/06/2026 | Criação do Modelo de Domínio e definição dos agregados do MVP. |
+| Versão | Data       | Alteração                                                                                                                                                                                         |
+| ------ | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1.0    | 28/06/2026 | Criação do Modelo de Domínio e definição dos agregados do MVP.                                                                                                                                    |
+| 1.1    | 01/07/2026 | Revisão arquitetural: Animal consolidado como principal Aggregate Root, alinhamento com o modelo de estados, separação entre agregados Propriedade e Animal e refinamento do conceito de Eventos. |
